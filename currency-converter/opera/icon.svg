@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Милый калькулятор">
+  <rect width="96" height="96" rx="25" fill="#dff4ee"/>
+  <path d="M28 19c-5 0-9 4-9 9v42c0 7 5 12 12 12h34c7 0 12-5 12-12V28c0-5-4-9-9-9H28Z" fill="#176b62"/>
+  <path d="M30 25h36c3 0 5 2 5 5v16c0 3-2 5-5 5H30c-3 0-5-2-5-5V30c0-3 2-5 5-5Z" fill="#f7fffc"/>
+  <circle cx="34" cy="61" r="5" fill="#94ded0"/><circle cx="48" cy="61" r="5" fill="#94ded0"/>
+  <circle cx="34" cy="73" r="5" fill="#94ded0"/><circle cx="48" cy="73" r="5" fill="#94ded0"/>
+  <rect x="57" y="56" width="14" height="22" rx="7" fill="#ffbd65"/>
+  <path d="M61 63h6M64 60v6M61 72h6" stroke="#7a4720" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M33 37h9M47 37h4M53 37h8" stroke="#176b62" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="57" cy="44" r="1.6" fill="#176b62"/><circle cx="63" cy="44" r="1.6" fill="#176b62"/>
+  <path d="M39 46c3 3 8 3 11 0" fill="none" stroke="#176b62" stroke-width="2" stroke-linecap="round"/>
+  <path d="M21 27c-6 1-9 4-10 9M75 23c5 1 8 4 9 8" fill="none" stroke="#ffbd65" stroke-width="3" stroke-linecap="round"/>
+</svg>
