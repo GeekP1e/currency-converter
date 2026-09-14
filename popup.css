@@ -1,0 +1,34 @@
+:root { color-scheme: light; font: 11px/1.3 system-ui, sans-serif; color: #17202a; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 210px; background: #f6f8fb; }
+main { padding: 10px; }
+header { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; }
+.logo { width: 27px; height: 27px; flex: 0 0 auto; }
+h1 { margin: 0; font-size: 13px; }
+header p { margin: 1px 0 0; color: #68737d; font-size: 9px; }
+#theme-toggle { width: 26px; height: 26px; margin-left: auto; border: 0; border-radius: 7px; background: #e2f2ef; color: #196c62; font-size: 15px; line-height: 1; cursor: pointer; }
+#theme-toggle:hover { background: #cfe9e4; }
+label { display: block; margin: 0 0 3px; color: #56616c; font-size: 9px; font-weight: 650; }
+input, select { width: 100%; border: 1px solid #d7dde3; border-radius: 10px; background: white; color: #17202a; font: inherit; outline: none; }
+input { padding: 7px 8px; font-size: 14px; font-weight: 650; }
+select { padding: 6px 5px; font-size: 9px; }
+input:focus, select:focus { border-color: #1c8b7d; box-shadow: 0 0 0 3px #1c8b7d20; }
+.currency-row { display: grid; grid-template-columns: 1fr 28px 1fr; gap: 5px; align-items: end; margin-top: 8px; }
+#swap { height: 28px; border: 0; border-radius: 50%; background: #e2f2ef; color: #196c62; font-size: 15px; cursor: pointer; }
+#swap:hover { background: #cfe9e4; }
+.result { margin-top: 9px; min-height: 52px; padding: 9px; border-radius: 8px; background: #196c62; color: white; }
+#result { display: block; overflow-wrap: anywhere; font-size: 16px; font-weight: 750; }
+#rate { display: block; margin-top: 3px; color: #d7f0ec; font-size: 9px; }
+.error { min-height: 12px; margin: 4px 0 0; color: #bd2c2c; font-size: 9px; }
+footer { display: flex; justify-content: space-between; align-items: center; gap: 5px; color: #68737d; font-size: 8px; }
+#refresh { border: 0; background: transparent; color: #196c62; cursor: pointer; font-weight: 650; font-size: 9px; }
+#refresh:disabled { color: #9ba4ac; cursor: wait; }
+
+body.dark { color: #e6edf4; background: #172027; }
+body.dark input, body.dark select { border-color: #3e4c57; background: #222d36; color: #edf5fa; }
+body.dark input:focus, body.dark select:focus { border-color: #41a999; box-shadow: 0 0 0 3px #41a99930; }
+body.dark label { color: #b6c2cc; }
+body.dark header p, body.dark footer { color: #98a8b5; }
+body.dark #theme-toggle, body.dark #swap { background: #29443f; color: #7ed6c7; }
+body.dark #theme-toggle:hover, body.dark #swap:hover { background: #36594f; }
+body.dark #refresh { color: #7ed6c7; }
