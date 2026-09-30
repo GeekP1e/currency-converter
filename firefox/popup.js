@@ -10,30 +10,70 @@ const CACHE_KEY = "nbkRatesV1";
 const THEME_KEY = "theme";
 const CACHE_TTL = 6 * 60 * 60 * 1000;
 
-const amount = document.querySelector("#amount");
-const from = document.querySelector("#from");
-const to = document.querySelector("#to");
-const result = document.querySelector("#result");
-const rateText = document.querySelector("#rate");
-const error = document.querySelector("#error");
 const status = document.querySelector("#status");
 const refresh = document.querySelector("#refresh");
 const themeToggle = document.querySelector("#theme-toggle");
+const error = document.querySelector("#error");
+const container = document.querySelector("#converters");
+const addButton = document.querySelector("#add");
 let rates = null;
-
-for (const [code, name] of Object.entries(CURRENCIES)) {
-  from.add(new Option(`${code} — ${name}`, code));
-  to.add(new Option(`${code} — ${name}`, code));
-}
-from.value = "KZT";
-to.value = "USD";
-
+let cards = [];
+let nextId = 0;
+let saveQueue = Promise.resolve();
+const storage = typeof browser !== "undefined" ? browser.storage.local : chrome.storage.local;
 function storageGet(key) {
-  return new Promise(resolve => browser.storage.local.get(key).then(resolve));
+  if (typeof browser !== "undefined") return storage.get(key);
+  return new Promise(resolve => storage.get(key, resolve));
 }
-
 function storageSet(value) {
-  return browser.storage.local.set(value);
+  if (typeof browser !== "undefined") return storage.set(value);
+  return new Promise(resolve => storage.set(value, resolve));
+}
+function saveCards() {
+  const converters = cards.map(card => ({ amount: card.amount.value, from: card.from.value, to: card.to.value }));
+  saveQueue = saveQueue.then(() => storageSet({ converters }));
+}
+function addCard(saved = { amount: "1", from: "KZT", to: "USD" }) {
+  const element = document.querySelector("#converter-template").content.firstElementChild.cloneNode(true);
+  const card = { element };
+  for (const field of ["amount", "from", "to", "result", "rate", "error"]) card[field] = element.querySelector(`[data-field="${field}"]`);
+  const id = nextId++;
+  for (const field of ["amount", "from", "to"]) {
+    card[field].id = `${field}-${id}`;
+    element.querySelector(`[data-label="${field}"]`).htmlFor = card[field].id;
+  }
+  card.error.id = `error-${id}`;
+  card.amount.setAttribute("aria-describedby", card.error.id);
+  for (const [code, name] of Object.entries(CURRENCIES)) {
+    for (const select of [card.from, card.to]) {
+      const option = new Option(code, code);
+      option.title = `${code} — ${name}`;
+      select.add(option);
+    }
+  }
+  card.amount.value = typeof saved.amount === "string" ? saved.amount : "1";
+  card.from.value = CURRENCIES[saved.from] ? saved.from : "KZT";
+  card.to.value = CURRENCIES[saved.to] ? saved.to : "USD";
+  const update = () => { convertCard(card); saveCards(); };
+  card.amount.addEventListener("input", update);
+  card.from.addEventListener("change", update);
+  card.to.addEventListener("change", update);
+  element.querySelector(".swap").addEventListener("click", () => {
+    [card.from.value, card.to.value] = [card.to.value, card.from.value];
+    update();
+  });
+  element.querySelector(".remove").addEventListener("click", () => {
+    cards = cards.filter(item => item !== card);
+    element.remove(); updateLayout(); saveCards();
+  });
+  cards.push(card); container.append(element); updateLayout(); convertCard(card);
+}
+function updateLayout() {
+  document.body.classList.toggle("multiple", cards.length > 1);
+  cards.forEach((card, index) => {
+    card.element.querySelector(".card-title").textContent = `Конвертер ${index + 1}`;
+    card.element.querySelector(".remove").disabled = cards.length === 1;
+  });
 }
 
 function applyTheme(theme) {
@@ -77,28 +117,33 @@ function parseRates(xmlText) {
   return parsed;
 }
 
-function convert() {
+function convertCard(card) {
+  const { amount, from, to, result, rate: rateText, error } = card;
   error.textContent = "";
   const value = parseNumber(amount.value);
   if (!Number.isFinite(value) || value < 0) {
-    result.textContent = "—";
-    rateText.textContent = "";
-    error.textContent = "Введите корректную положительную сумму";
+    result.textContent = "—"; rateText.textContent = "";
+    error.textContent = "Введите число не меньше нуля";
     return;
   }
   if (!rates) return;
-
-  const converted = value * rates[from.value] / rates[to.value];
   const unitRate = rates[from.value] / rates[to.value];
+  const converted = value * unitRate;
+  if (!Number.isFinite(converted)) {
+    result.textContent = "—"; rateText.textContent = "";
+    error.textContent = "Слишком большая сумма"; return;
+  }
   result.textContent = format(converted, to.value);
   rateText.textContent = `1 ${from.value} = ${new Intl.NumberFormat("ru-KZ", { maximumFractionDigits: 6 }).format(unitRate)} ${to.value}`;
 }
+function convert() { cards.forEach(convertCard); }
 
 async function loadRates(force = false) {
   refresh.disabled = true;
   error.textContent = "";
   try {
-    const stored = (await storageGet(CACHE_KEY))[CACHE_KEY];
+    const cached = await storageGet([CACHE_KEY, "rates"]);
+    const stored = cached[CACHE_KEY] || (cached.rates && { rates: cached.rates.map, date: cached.rates.date, savedAt: cached.rates.saved });
     if (!force && stored && Date.now() - stored.savedAt < CACHE_TTL) {
       rates = stored.rates;
       status.textContent = `Курс НБК на ${stored.date}`;
@@ -117,7 +162,8 @@ async function loadRates(force = false) {
     status.textContent = `Курс НБК на ${date}`;
     convert();
   } catch (cause) {
-    const stored = (await storageGet(CACHE_KEY))[CACHE_KEY];
+    const cached = await storageGet([CACHE_KEY, "rates"]);
+    const stored = cached[CACHE_KEY] || (cached.rates && { rates: cached.rates.map, date: cached.rates.date, savedAt: cached.rates.saved });
     if (stored) {
       rates = stored.rates;
       status.textContent = `Сохранённый курс на ${stored.date}`;
@@ -132,12 +178,10 @@ async function loadRates(force = false) {
   }
 }
 
-amount.addEventListener("input", convert);
-from.addEventListener("change", convert);
-to.addEventListener("change", convert);
-document.querySelector("#swap").addEventListener("click", () => {
-  [from.value, to.value] = [to.value, from.value];
-  convert();
+addButton.addEventListener("click", () => {
+  const last = cards[cards.length - 1];
+  addCard({ amount: "1", from: last.to.value, to: last.from.value });
+  saveCards();
 });
 refresh.addEventListener("click", () => loadRates(true));
 themeToggle.addEventListener("click", async () => {
@@ -145,10 +189,14 @@ themeToggle.addEventListener("click", async () => {
   applyTheme(theme);
   await storageSet({ [THEME_KEY]: theme });
 });
-
-storageGet(THEME_KEY).then(saved => {
-  const theme = saved[THEME_KEY]
-    || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-  applyTheme(theme);
-});
-loadRates();
+async function initialize() {
+  const saved = await storageGet([THEME_KEY, "converters"]);
+  applyTheme(saved[THEME_KEY] || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+  if (Array.isArray(saved.converters) && saved.converters.length) {
+    saved.converters.filter(item => item && typeof item === "object").forEach(addCard);
+  }
+  if (!cards.length) addCard();
+  addButton.disabled = false;
+  loadRates();
+}
+initialize();
