@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Точный конвертер валют",
-  "version": "1.1.0",
+  "version": "1.1.4",
   "description": "Конвертация KZT, RUB, USD, EUR и CNY по официальным курсам Национального Банка Казахстана.",
   "permissions": [
     "storage"
